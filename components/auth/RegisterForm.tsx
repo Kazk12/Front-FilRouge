@@ -33,7 +33,21 @@ const RegisterForm = () => {
     if (type === "checkbox") {
       const checked = (e.target as HTMLInputElement).checked;
       setIsVendeur(checked);
-      setFormData((prev) => ({ ...prev, isVendeur: checked }));
+      
+      // Réinitialiser les champs d'entreprise s'ils ne sont plus nécessaires
+      if (!checked) {
+        setFormData((prev) => ({
+          ...prev,
+          isVendeur: checked,
+          entrepriseNom: "",
+          entrepriseAdresse: ""
+        }));
+      } else {
+        setFormData((prev) => ({
+          ...prev,
+          isVendeur: checked
+        }));
+      }
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
@@ -42,47 +56,51 @@ const RegisterForm = () => {
   const validateForm = (): boolean => {
     // Réinitialiser l'erreur
     setError(null);
-
+  
     // Vérifier que tous les champs obligatoires sont remplis
     if (!formData.email || !formData.nom || !formData.prenom || !formData.telephone || !formData.password) {
       setError("Veuillez remplir tous les champs obligatoires.");
       return false;
     }
-
+  
     // Valider le format de l'email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
       setError("Format d'email invalide.");
       return false;
     }
-
+  
     // Valider le format du téléphone (version simple)
     const phoneRegex = /^[0-9]{10}$/;
     if (!phoneRegex.test(formData.telephone)) {
       setError("Le numéro de téléphone doit contenir 10 chiffres.");
       return false;
     }
-
+  
     // Vérifier que les mots de passe correspondent
     if (formData.password !== formData.confirmPassword) {
       setError("Les mots de passe ne correspondent pas.");
       return false;
     }
-
+  
     // Vérifier la complexité du mot de passe
     if (formData.password.length < 8) {
       setError("Le mot de passe doit contenir au moins 8 caractères.");
       return false;
     }
-
+  
     // Vérifier les champs spécifiques aux vendeurs
     if (isVendeur) {
-      if (!formData.entrepriseNom || !formData.entrepriseAdresse) {
-        setError("Les informations de l'entreprise sont requises pour les vendeurs.");
+      if (!formData.entrepriseNom || formData.entrepriseNom.trim() === "") {
+        setError("Le nom de l'entreprise est requis pour les vendeurs.");
+        return false;
+      }
+      if (!formData.entrepriseAdresse || formData.entrepriseAdresse.trim() === "") {
+        setError("L'adresse de l'entreprise est requise pour les vendeurs.");
         return false;
       }
     }
-
+  
     return true;
   };
 
@@ -92,7 +110,7 @@ const RegisterForm = () => {
     if (!validateForm()) {
       return;
     }
-
+  
     setIsLoading(true);
     try {
       await authService.register(formData);

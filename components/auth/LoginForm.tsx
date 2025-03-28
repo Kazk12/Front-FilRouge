@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useAuth } from "@/hooks/useAuth";
 import Link from "next/link";
+import { useAuth } from "@/hooks/useAuth";
 import { LoginFormData } from "@/types/auth";
 
 export default function LoginForm() {
