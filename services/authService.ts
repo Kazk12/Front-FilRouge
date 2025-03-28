@@ -1,6 +1,6 @@
 import { LoginFormData, RegisterFormData, User } from "@/types/auth";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 /**
  * Gère les appels API liés à l'authentification

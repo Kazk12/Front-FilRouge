@@ -2,7 +2,7 @@
  * Utilitaires pour les interactions avec l'API
  */
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 /**
  * Vérifie si l'API est accessible
@@ -11,7 +11,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 export async function testApiConnection(): Promise<boolean> {
   try {
     // Pour API Platform, essayons d'accéder à la documentation
-    const response = await fetch(`${API_URL}/api`, {
+    const response = await fetch(`${API_URL}/hello`, {
       method: 'GET',
       headers: {
         'Accept': 'application/json',
