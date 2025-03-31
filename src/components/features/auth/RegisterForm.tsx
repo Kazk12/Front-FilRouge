@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import FormGroup from "@/components/ui/FormGroup";
-import authService from "@/services/authService";
+import authService from "@/lib/services/authService";
 import type { RegisterFormData } from "@/types/auth";
 
 const RegisterForm = () => {
