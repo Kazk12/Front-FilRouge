@@ -60,7 +60,7 @@ export default function BookCard({ book }: BookCardProps) {
               {book.state.name}
             </span>
             <span className="text-gray-600 dark:text-gray-400">
-              Vendeur: {book.user?.firstName || "Anonyme"}
+              Vendeur: {book.user?.prenom || "Anonyme"} {book.user?.nom || ""}
             </span>
           </div>
         </div>
