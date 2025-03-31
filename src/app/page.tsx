@@ -1,5 +1,5 @@
-import BookList from "@/components/home/BookList";
-import Hero from "@/components/home/Hero";
+import BookList from "@/components/features/books/BookList";
+import Hero from "@/components/features/home/Hero";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {

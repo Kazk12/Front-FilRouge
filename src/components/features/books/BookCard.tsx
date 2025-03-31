@@ -3,7 +3,7 @@
 import { Book } from "@/types/book";
 import Image from "next/image";
 import Link from "next/link";
-import { formatPrice } from "@/utils/formatters";
+import { formatPrice } from "@/lib/utils/formatters";
 import { useCart } from "@/hooks/useCart";
 
 interface BookCardProps {

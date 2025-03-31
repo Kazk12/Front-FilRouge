@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useMemo, useState, ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import authService from "@/services/authService";
+import authService from "@/lib/services/authService"; // Chemin d'import corrigé
 import { User, AuthState, LoginFormData, RegisterFormData } from "@/types/auth";
 
 // Création du contexte d'authentification

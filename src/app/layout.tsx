@@ -4,8 +4,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/hooks/useAuth";
 import ApiStatusChecker from "@/components/ApiStatusChecker";
-import Header from "@/components/home/Header";
-import Footer from "@/components/home/Footer";
+import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
 import { CartProvider } from "@/hooks/useCart";
 
 const geistSans = Geist({

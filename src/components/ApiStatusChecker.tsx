@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { testApiConnection } from "@/utils/apiUtils";
+import { testApiConnection } from "@/lib/utils/apiUtils";
 
 export default function ApiStatusChecker() {
   const [apiStatus, setApiStatus] = useState<'checking' | 'connected' | 'error'>('checking');

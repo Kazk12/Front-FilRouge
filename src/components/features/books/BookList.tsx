@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import BookCard from "./BookCard";
-import { getLatestBooks } from "@/services/bookService";
+import { getLatestBooks } from "@/lib/services/bookService";
 import BookCardSkeleton from "./BookCardSkeleton";
 
 export default async function BookList() {
