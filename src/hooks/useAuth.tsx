@@ -72,7 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAuthenticated: true,
       });
       
-      router.push("/tableau-de-bord");
+      router.push("/");
     } catch (error) {
       setState((prev) => ({
         ...prev,
@@ -97,7 +97,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAuthenticated: true,
       });
       
-      router.push("/tableau-de-bord");
+      router.push("/connexion?registered=true");
     } catch (error) {
       setState((prev) => ({
         ...prev,

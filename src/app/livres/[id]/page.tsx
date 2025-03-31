@@ -3,12 +3,16 @@ import { Metadata, ResolvingMetadata } from 'next';
 import BookDetail from '@/components/features/books/detail/BookDetail';
 import RelatedBooks from '@/components/features/books/detail/RelatedBooks';
 import { getBookById } from '@/lib/services/bookService';
+import React from 'react'; // Ajout de l'import React pour résoudre le problème JSX
 
 type Props = {
   params: { id: string };
   searchParams: { [key: string]: string | string[] | undefined };
 };
 
+/**
+ * Génère les métadonnées pour la page de détail du livre
+ */
 export async function generateMetadata(
   { params }: Props,
   parent: ResolvingMetadata
@@ -37,7 +41,10 @@ export async function generateMetadata(
   };
 }
 
-export default async function BookPage({ params }: Props): Promise<JSX.Element> {
+/**
+ * Composant de page pour afficher les détails d'un livre
+ */
+export default async function BookPage({ params }: Props): Promise<React.ReactElement> {
   // Attendre directement les params
   const resolvedParams = await params;
   const id = resolvedParams.id;

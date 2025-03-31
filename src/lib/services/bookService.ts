@@ -1,6 +1,12 @@
 import { Book } from "@/types/book";
 import { Category } from "@/types/category";
 
+// Interface pour les états des livres
+interface State {
+  id: number;
+  name: string;
+}
+
 // Interface pour les réponses API (avec ou sans Hydra)
 interface ApiResponse<T> {
   "member"?: T[];
@@ -9,8 +15,24 @@ interface ApiResponse<T> {
   totalItems?: number;
 }
 
+// Interface pour les filtres de recherche
+interface SearchFilters {
+  category?: string | number;
+  state?: string | number;
+  minPrice?: number;
+  maxPrice?: number;
+  [key: string]: string | number | undefined;
+}
+
 // Définition de l'URL de l'API avec une valeur par défaut
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+/**
+ * Type predicate pour vérifier si un livre est valide (non null)
+ */
+function isValidBook(book: Book | null): book is Book {
+  return book !== null;
+}
 
 /**
  * Extrait les membres d'une réponse API, quel que soit le format
@@ -98,8 +120,8 @@ export async function getLatestBooks(): Promise<Book[]> {
       console.warn("Format de réponse API non reconnu:", data);
     }
     
-    // Normaliser les données des livres et filtrer les valeurs null
-    return books.map(normalizeBookData).filter(book => book !== null);
+    // Normaliser les données des livres et filtrer les valeurs null avec type predicate
+    return books.map(normalizeBookData).filter(isValidBook);
   } catch (error) {
     console.error("Erreur dans getLatestBooks:", error);
     return [];
@@ -141,7 +163,6 @@ export async function getBookById(id: string | number): Promise<Book | null> {
  */
 export async function getOtherBooksByUser(bookId: string | number): Promise<Book[]> {
   try {
-    
     const response = await fetch(`${API_URL}/books/${bookId}/public-other-books`, {
       headers: {
         "Accept": "application/ld+json"
@@ -155,7 +176,6 @@ export async function getOtherBooksByUser(bookId: string | number): Promise<Book
     }
     
     const data = await response.json();
-    
     const otherBooks = extractMembers(data);
     
     // Limiter à 3 livres maximum
@@ -164,16 +184,21 @@ export async function getOtherBooksByUser(bookId: string | number): Promise<Book
     // Normaliser et filtrer les valeurs null
     return limitedBooks
       .map(normalizeBookData)
-      .filter((book): book is Book => book !== null);
+      .filter(isValidBook);
   } catch (error) {
     console.error("Erreur dans getOtherBooksByUser:", error);
     return [];
   }
 }
+
 /**
  * Recherche des livres selon des critères
  */
-export async function searchBooks(query: string, page = 1, filters = {}): Promise<{ books: Book[], total: number }> {
+export async function searchBooks(
+  query: string, 
+  page = 1, 
+  filters: SearchFilters = {}
+): Promise<{ books: Book[], total: number }> {
   try {
     // Construction des paramètres de recherche
     const searchParams = new URLSearchParams({
@@ -213,9 +238,9 @@ export async function searchBooks(query: string, page = 1, filters = {}): Promis
     const books = data["hydra:member"] || data.member || [];
     const total = data["hydra:totalItems"] || data.totalItems || books.length;
     
-    // Normaliser les données des livres
+    // Normaliser les données des livres avec type predicate
     return { 
-      books: books.map(normalizeBookData).filter(book => book !== null), 
+      books: books.map(normalizeBookData).filter(isValidBook), 
       total 
     };
   } catch (error) {
@@ -253,7 +278,7 @@ export async function getCategories(): Promise<Category[]> {
 /**
  * Récupère les états disponibles pour les livres
  */
-export async function getStates(): Promise<any[]> {
+export async function getStates(): Promise<State[]> {
   try {
     const response = await fetch(`${API_URL}/states`, {
       headers: {

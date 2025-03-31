@@ -78,7 +78,7 @@ class AuthService {
         // Gestion des détails professionnels si l'utilisateur est vendeur
         professionnalDetails: formData.isVendeur ? {
           companyName: formData.entrepriseNom || "",
-          companyAddress: formData.entrepriseAdresse || ""
+          companyAdress: formData.entrepriseAdresse || ""
         } : null
       };
 

@@ -31,9 +31,16 @@ export default function BookDetail({ book }: BookDetailProps) {
   };
   
   // Assurer que l'image est une URL valide ou utiliser l'image par défaut
-  const imageUrl = book.image && book.image !== 'string' 
-    ? book.image 
-    : '/images/book-placeholder.png';
+  const imageUrl = book.image && 
+    typeof book.image === 'string' && 
+    !book.image.includes('<string>') &&
+    book.image !== 'string' 
+      ? book.image 
+      : '/images/book-placeholder.png';
+  
+  const handleImageLoad = () => {
+    setIsImageLoading(false);
+  };
   
   return (
     <div className="flex flex-col lg:flex-row gap-8">
@@ -50,9 +57,10 @@ export default function BookDetail({ book }: BookDetailProps) {
             alt={book.title}
             fill
             className={`object-cover transition-opacity ${isImageLoading ? 'opacity-0' : 'opacity-100'}`}
-            onLoadingComplete={() => setIsImageLoading(false)}
+            onLoad={handleImageLoad}
             onError={handleImageError}
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            priority
           />
         </div>
       </div>
@@ -100,18 +108,19 @@ export default function BookDetail({ book }: BookDetailProps) {
                 ? "bg-green-600 hover:bg-green-700"
                 : "bg-blue-600 hover:bg-blue-700 hover:shadow-lg"
             }`}
+            aria-label={isInCart ? "Déjà dans le panier" : "Ajouter au panier"}
           >
             <div className="flex items-center gap-2">
               {isInCart ? (
                 <>
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                   </svg>
                   <span>Dans le panier</span>
                 </>
               ) : (
                 <>
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                   </svg>
                   <span>Ajouter au panier</span>
