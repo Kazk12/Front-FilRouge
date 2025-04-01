@@ -77,7 +77,7 @@ export default function Header() {
           <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-2" onClick={closeMenu}>
               <Image 
-                src="/images/logo.svg" 
+                src="/images/logo.jpg" 
                 alt="Librairie d'occasion"
                 width={36}
                 height={36}
@@ -161,13 +161,13 @@ export default function Header() {
                       {isDropdownOpen && (
                         <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 z-50 border border-gray-200 dark:border-gray-700">
                           <Link 
-                            href="/tableau-de-bord" 
+                            href="/profil" 
                             className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors"
                             onClick={() => setIsDropdownOpen(false)}
                           >
-                            Tableau de bord
+                            Voir mon profil
                           </Link>
-                          {user?.role?.includes('ROLE_VENDEUR') && (
+                          {user?.roles?.includes('ROLE_VENDEUR') && (
                             <Link 
                               href="/mes-livres/ajouter" 
                               className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors"
@@ -303,7 +303,7 @@ export default function Header() {
                       Tableau de bord
                     </Link>
                   </li>
-                  {user?.role?.includes('ROLE_VENDEUR') && (
+                  {user?.roles?.includes('ROLE_VENDEUR') && (
                     <li>
                       <Link 
                         href="/mes-livres/ajouter" 
