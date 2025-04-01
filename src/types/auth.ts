@@ -1,13 +1,15 @@
 export interface User {
   id: string;
   email: string;
-  nom: string;
-  prenom: string;
+  lastName: string;
+  firstName: string;
   telephone: string;
   description?: string;
-  role: "user" | "vendeur" | "admin";
-  entrepriseNom?: string;
-  entrepriseAdresse?: string;
+  roles: "user" | "vendeur" | "admin";
+  professionnalDetails?: {
+    companyName: string;
+    companyAdress: string;
+  };
   createdAt: string;
   updatedAt: string;
 }
