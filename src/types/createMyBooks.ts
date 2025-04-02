@@ -1,41 +1,23 @@
-export type FormState = {
-    title: string;
-    author: string;
-    categories: string[];
-    state: string;
-    shortDescription: string;
-    description: string;
-    price: string;
-    image: File | null;
-  };
-  
-  export type FormErrors = Record<string, string>;
+export interface FormState {
+  title: string;
+  author: string;
+  categories: string[]; // Maintenant, nous utiliserons les IDs des catégories
+  state: string; // ID de l'état
+  shortDescription: string;
+  description: string;
+  price: string;
+  image: File | null;
+}
 
-  // Options pour l'état du livre
-export const stateOptions = [
-  { value: "neuf", label: "Neuf" },
-  { value: "très bon", label: "Très bon état" },
-  { value: "bon", label: "Bon état" },
-  { value: "acceptable", label: "État acceptable" },
-  { value: "usé", label: "Usé" },
-];
-
-// Catégories de livres
-export const bookCategories = [
-  "Roman",
-  "Science-fiction",
-  "Fantasy",
-  "Policier",
-  "Thriller",
-  "Biographie",
-  "Histoire",
-  "Science",
-  "Art",
-  "Cuisine",
-  "Développement personnel",
-  "Littérature classique",
-  "Littérature jeunesse",
-  "Manga",
-  "BD",
-  "Autre",
-];
+export interface FormErrors {
+  title?: string;
+  author?: string;
+  categories?: string;
+  state?: string;
+  shortDescription?: string;
+  description?: string;
+  price?: string;
+  image?: string;
+  submit?: string;
+  [key: string]: string | undefined;
+}

@@ -300,3 +300,38 @@ export async function getStates(): Promise<State[]> {
     return [];
   }
 }
+
+
+/**
+ * Crée un nouveau livre à partir des données du formulaire
+ */
+export async function createBook(bookData: FormData, token: string): Promise<Book | null> {
+  try {
+    const response = await fetch(`${API_URL}/books`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      body: bookData,
+      // Ne pas définir Content-Type pour laisser fetch le faire avec les limites appropriées pour un FormData
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+      console.error("Erreur lors de la création du livre:", errorData || response.statusText);
+      
+      // On peut retourner l'erreur pour la gérer dans l'interface
+      throw new Error(
+        errorData?.['hydra:description'] || 
+        errorData?.detail || 
+        `Erreur lors de la création du livre: ${response.status}`
+      );
+    }
+
+    const data = await response.json();
+    return normalizeBookData(data);
+  } catch (error) {
+    console.error("Erreur dans createBook:", error);
+    throw error; // On propage l'erreur pour la gérer dans le hook
+  }
+}

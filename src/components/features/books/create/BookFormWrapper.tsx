@@ -9,6 +9,9 @@ import FormActions from "./FormActions";
 export default function BookFormWrapper() {
   const {
     formData,
+    stateOptions,
+    categoryOptions,
+    isLoadingOptions,
     imagePreview,
     errors,
     isSubmitting,
@@ -36,6 +39,8 @@ export default function BookFormWrapper() {
             formData={formData}
             errors={errors}
             handleChange={handleChange}
+            stateOptions={stateOptions}
+            isLoadingOptions={isLoadingOptions}
           />
           
           <BookImageSection
@@ -51,6 +56,8 @@ export default function BookFormWrapper() {
             formData={formData}
             errors={errors}
             handleCategoryChange={handleCategoryChange}
+            categoryOptions={categoryOptions}
+            isLoadingOptions={isLoadingOptions}
           />
           
           <FormActions isSubmitting={isSubmitting} />

@@ -1,6 +1,6 @@
 import { ChangeEvent, RefObject } from "react";
 import Image from "next/image";
-import { FormState, FormErrors } from "./types";
+import { FormState, FormErrors } from "@/types/createMyBooks";
 
 type BookImageSectionProps = {
   formData: FormState;
@@ -11,6 +11,9 @@ type BookImageSectionProps = {
   handleRemoveImage: () => void;
 };
 
+
+
+// Corrigez la partie de sélection d'image
 export default function BookImageSection({ 
   formData, 
   errors, 
@@ -74,22 +77,38 @@ export default function BookImageSection({
             accept="image/*"
             className="hidden"
           />
-          <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed rounded-lg border-gray-300 dark:border-gray-600">
-            <div className="space-y-1 text-center">
-              <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-              </svg>
-              <div className="flex text-sm text-gray-600 dark:text-gray-400">
-                <label htmlFor="image" className="relative cursor-pointer bg-white dark:bg-gray-700 rounded-md font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 focus-within:outline-none">
-                  <span className="px-2 py-1.5 rounded-md bg-indigo-50 dark:bg-indigo-900/30" onClick={() => fileInputRef.current?.click()}>Parcourir</span>
-                </label>
-                <p className="pl-1">ou glissez-déposez</p>
+          {!imagePreview && (
+            <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed rounded-lg border-gray-300 dark:border-gray-600">
+              <div className="space-y-1 text-center">
+                <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+                <div className="flex text-sm text-gray-600 dark:text-gray-400">
+                  <label htmlFor="image" className="relative cursor-pointer bg-white dark:bg-gray-700 rounded-md font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 focus-within:outline-none">
+                    <span className="px-2 py-1.5 rounded-md bg-indigo-50 dark:bg-indigo-900/30" onClick={() => fileInputRef.current?.click()}>Parcourir</span>
+                  </label>
+                  <p className="pl-1">ou glissez-déposez</p>
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  PNG, JPG ou GIF jusqu'à 5MB
+                </p>
               </div>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                PNG, JPG ou GIF jusqu'à 5MB
-              </p>
             </div>
-          </div>
+          )}
+          {imagePreview && (
+            <div className="mt-1 text-center">
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                Image sélectionnée
+              </p>
+              <button
+                type="button"
+                onClick={handleRemoveImage}
+                className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+              >
+                Changer d'image
+              </button>
+            </div>
+          )}
           {errors.image && (
             <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.image}</p>
           )}

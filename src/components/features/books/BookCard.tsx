@@ -14,6 +14,8 @@ export default function BookCard({ book }: BookCardProps) {
   const { addToCart, isItemInCart } = useCart();
   const isInCart = isItemInCart(book.id);
 
+  console.log(book.state.name)
+
   const handleAddToCart = () => {
     addToCart({
       id: book.id,
