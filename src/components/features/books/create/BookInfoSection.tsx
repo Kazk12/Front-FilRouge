@@ -11,8 +11,6 @@ interface BookInfoSectionProps {
   isLoadingOptions: boolean;
 }
 
-
-
 export default function BookInfoSection({
   formData,
   errors,
@@ -20,7 +18,6 @@ export default function BookInfoSection({
   stateOptions,
   isLoadingOptions,
 }: BookInfoSectionProps) {
-
   return (
     <div className="bg-white dark:bg-gray-800 shadow-md rounded-xl p-6 border border-gray-200 dark:border-gray-700">
       <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
@@ -97,7 +94,14 @@ export default function BookInfoSection({
   id="state"
   name="state"
   value={formData.state}
-  onChange={handleChange}
+  onChange={(e) => {
+    const selectedId = e.target.value;
+    const selectedName = e.target.options[e.target.selectedIndex].text;
+   
+    
+    // Assurez-vous que la valeur est bien l'ID
+    handleChange(e);
+  }}
   disabled={isLoadingOptions}
   className={`w-full px-4 py-2.5 rounded-lg border ${
     errors.state
@@ -111,9 +115,9 @@ export default function BookInfoSection({
     backgroundSize: "1.5em 1.5em",
   }}
 >
-  <option value="">Sélectionnez l'état du livre</option>
+  <option key="default" value="">Sélectionnez l'état du livre</option>
   {isLoadingOptions ? (
-    <option value="" disabled>
+    <option key="loading" value="" disabled>
       Chargement des options...
     </option>
   ) : stateOptions && stateOptions.length > 0 ? (
@@ -123,7 +127,7 @@ export default function BookInfoSection({
       </option>
     ))
   ) : (
-    <option value="" disabled>
+    <option key="empty" value="" disabled>
       Aucun état disponible
     </option>
   )}

@@ -1,13 +1,12 @@
 import { FormState, FormErrors } from "@/types/createMyBooks";
 import { ChangeEvent } from "react";
 
-interface BookCategoriesSectionProps {
+type BookCategoriesSectionProps = {
   formData: FormState;
   errors: FormErrors;
-  handleCategoryChange: (e: ChangeEvent<HTMLInputElement>) => void;
   categoryOptions: { id: string; name: string }[];
-  isLoadingOptions: boolean;
-}
+  handleCategoryChange: (e: ChangeEvent<HTMLInputElement>) => void;
+};
 
 export default function BookCategoriesSection({
   formData,
@@ -37,6 +36,7 @@ export default function BookCategoriesSection({
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
             {categoryOptions.map((category) => (
+              
               <div key={`cat-${category.id}`} className="flex items-center">
                 <input
                   id={`category-${category.id}`}

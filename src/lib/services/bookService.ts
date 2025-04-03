@@ -114,7 +114,7 @@ export async function getLatestBooks(): Promise<Book[]> {
     let books = data["hydra:member"] || data.member || (Array.isArray(data) ? data : []);
     
     // Limitation côté client pour s'assurer de ne pas dépasser 6 livres
-    books = books.slice(0, 6);
+    books = books.slice(0, 8);
     
     if (books.length === 0 && !Array.isArray(data)) {
       console.warn("Format de réponse API non reconnu:", data);
@@ -275,6 +275,7 @@ export async function getCategories(): Promise<Category[]> {
   }
 }
 
+
 /**
  * Récupère les états disponibles pour les livres
  */
@@ -292,7 +293,19 @@ export async function getStates(): Promise<State[]> {
     }
 
     const data = await response.json();
-    const states = data["hydra:member"] || data.member || (Array.isArray(data) ? data : []);
+    const rawStates = data["hydra:member"] || data.member || (Array.isArray(data) ? data : []);
+
+    // Transformation des données pour extraire l'ID de @id
+    const states = rawStates.map(state => {
+      // Extraire l'ID numérique de l'URI (ex: /api/states/1 -> 1)
+      const id = state["@id"] ? state["@id"].split("/").pop() : null;
+      
+      return {
+        id,
+        name: state.name
+      };
+    });
+    
     
     return states;
   } catch (error) {
@@ -302,34 +315,114 @@ export async function getStates(): Promise<State[]> {
 }
 
 
-/**
- * Crée un nouveau livre à partir des données du formulaire
- */
 export async function createBook(bookData: FormData, token: string): Promise<Book | null> {
   try {
+    // 1. Créer un objet pour stocker toutes les données au format JSON
+    const jsonData: any = {};
+    
+    // 2. Extraire les données textuelles du FormData
+    bookData.forEach((value, key) => {
+      // Ne pas inclure le fichier image dans l'objet JSON
+      if (key !== 'image') {
+        jsonData[key] = value;
+      }
+    });
+    
+    // Traitement spécial des catégories - à faire séparément pour s'assurer de récupérer toutes les valeurs
+    const categoryIds = bookData.getAll('categories');
+    if (categoryIds.length > 0) {
+      // Vérifier si les IDs sont numériques et les convertir si nécessaire
+      const formattedCategoryIds = categoryIds.map(id => {
+        // S'assurer que l'ID est traité comme une chaîne
+        const categoryId = String(id);
+        // Vérifier si l'ID est déjà au format IRI
+        if (categoryId.startsWith('/api/categories/')) {
+          return categoryId;
+        } else {
+          return `/api/categories/${categoryId}`;
+        }
+      });
+      
+      // Assigner les catégories formatées à jsonData
+      jsonData.categories = formattedCategoryIds;
+    }
+    
+    // Ajouter une valeur par défaut pour l'image pour éviter l'erreur SQL
+    jsonData.image = 'placeholder.jpg';
+    
+    console.log("Données JSON envoyées:", JSON.stringify(jsonData, null, 2));
+    
+    // 3. Première requête : créer le livre avec une image par défaut
     const response = await fetch(`${API_URL}/books`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${token}`
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/ld+json',
+        'Accept': 'application/ld+json'
       },
-      body: bookData,
-      // Ne pas définir Content-Type pour laisser fetch le faire avec les limites appropriées pour un FormData
+      body: JSON.stringify(jsonData)
     });
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => null);
       console.error("Erreur lors de la création du livre:", errorData || response.statusText);
-      
-      // On peut retourner l'erreur pour la gérer dans l'interface
-      throw new Error(
-        errorData?.['hydra:description'] || 
-        errorData?.detail || 
-        `Erreur lors de la création du livre: ${response.status}`
-      );
+      throw new Error(errorData?.['hydra:description'] || errorData?.detail || `Erreur lors de la création du livre: ${response.status}`);
     }
 
-    const data = await response.json();
-    return normalizeBookData(data);
+    // 4. Récupérer les données du livre créé, y compris l'ID
+    const bookCreated = await response.json();
+    console.log("Livre créé avec succès:", bookCreated['@id']);
+    
+    // 5. Si une image est fournie, la télécharger séparément avec une seconde requête
+    const image = bookData.get('image');
+    
+    if (image instanceof File && bookCreated['@id']) {
+      console.log("Upload de l'image:", image.name, image.type, image.size);
+      
+      const imageFormData = new FormData();
+      imageFormData.append('image', image);
+      
+      const imageEndpoint = `${bookCreated['@id']}/image`;
+      console.log("URL d'upload de l'image:", imageEndpoint);
+      
+      try {
+        const imageResponse = await fetch(`http://127.0.0.1:8000${imageEndpoint}`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+            // Ne pas définir Content-Type pour FormData
+          },
+          body: imageFormData
+        });
+        
+        if (!imageResponse.ok) {
+          const imageErrorText = await imageResponse.text();
+          console.error("Erreur lors de l'upload de l'image:", imageResponse.status, imageErrorText);
+        } else {
+          const imageResult = await imageResponse.json().catch(() => ({}));
+          console.log("Image téléchargée avec succès:", imageResult);
+        }
+      } catch (imageError) {
+        console.error("Exception lors de l'upload de l'image:", imageError);
+      }
+      
+      // Récupérer le livre mis à jour avec l'image
+      const bookWithImageResponse = await fetch(`${bookCreated['@id']}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/ld+json',
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      
+      if (bookWithImageResponse.ok) {
+        const bookWithImage = await bookWithImageResponse.json();
+        console.log("Livre récupéré après upload d'image:", bookWithImage.image);
+        return normalizeBookData(bookWithImage);
+      }
+    }
+
+    return normalizeBookData(bookCreated);
   } catch (error) {
     console.error("Erreur dans createBook:", error);
     throw error; // On propage l'erreur pour la gérer dans le hook

@@ -1,4 +1,4 @@
-import { ChangeEvent, RefObject } from "react";
+import { ChangeEvent, RefObject, MouseEvent } from "react";
 import Image from "next/image";
 import { FormState, FormErrors } from "@/types/createMyBooks";
 
@@ -11,9 +11,6 @@ type BookImageSectionProps = {
   handleRemoveImage: () => void;
 };
 
-
-
-// Corrigez la partie de sélection d'image
 export default function BookImageSection({ 
   formData, 
   errors, 
@@ -22,6 +19,15 @@ export default function BookImageSection({
   handleImageChange, 
   handleRemoveImage 
 }: BookImageSectionProps) {
+  
+  // Nouvelle fonction pour gérer l'ouverture du sélecteur de fichier
+  const handleBrowseClick = (e: MouseEvent) => {
+    e.preventDefault(); // Empêche la propagation des événements
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+  
   return (
     <div className="bg-white dark:bg-gray-800 shadow-md rounded-xl p-6 border border-gray-200 dark:border-gray-700">
       <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
@@ -63,7 +69,7 @@ export default function BookImageSection({
           </div>
         </div>
 
-        {/* Zone d'upload */}
+        {/* Zone d'upload - Affichage unifié */}
         <div className="md:w-2/3">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Photo du livre <span className="text-red-500">*</span>
@@ -77,38 +83,59 @@ export default function BookImageSection({
             accept="image/*"
             className="hidden"
           />
-          {!imagePreview && (
-            <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed rounded-lg border-gray-300 dark:border-gray-600">
+          
+          <div className="mt-1">
+            {/* Afficher toujours le bloc de parcourir/déposer, mais conditionnel pour certains éléments */}
+            <div className="flex justify-center px-6 pt-5 pb-6 border-2 border-dashed rounded-lg border-gray-300 dark:border-gray-600">
               <div className="space-y-1 text-center">
-                <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                </svg>
-                <div className="flex text-sm text-gray-600 dark:text-gray-400">
-                  <label htmlFor="image" className="relative cursor-pointer bg-white dark:bg-gray-700 rounded-md font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 focus-within:outline-none">
-                    <span className="px-2 py-1.5 rounded-md bg-indigo-50 dark:bg-indigo-900/30" onClick={() => fileInputRef.current?.click()}>Parcourir</span>
-                  </label>
-                  <p className="pl-1">ou glissez-déposez</p>
-                </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  PNG, JPG ou GIF jusqu'à 5MB
-                </p>
+                {/* Affichage différent selon qu'une image est sélectionnée ou non */}
+                {!imagePreview ? (
+                  <>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                    <div className="flex text-sm text-gray-600 dark:text-gray-400">
+                      {/* Suppression du htmlFor et modification du gestionnaire d'événement */}
+                      <button 
+                        type="button"
+                        onClick={handleBrowseClick}
+                        className="relative cursor-pointer bg-white dark:bg-gray-700 rounded-md font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 focus:outline-none"
+                      >
+                        <span className="px-2 py-1.5 rounded-md bg-indigo-50 dark:bg-indigo-900/30">Parcourir</span>
+                      </button>
+                      <p className="pl-1">ou glissez-déposez</p>
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      PNG, JPG ou GIF jusqu'à 5MB
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                      Une image a été sélectionnée
+                    </p>
+                    <div className="flex space-x-3 justify-center">
+                      <button
+                        type="button"
+                        onClick={handleBrowseClick}
+                        className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                      >
+                        Choisir une autre image
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleRemoveImage}
+                        className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                      >
+                        Supprimer l'image
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
-          )}
-          {imagePreview && (
-            <div className="mt-1 text-center">
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                Image sélectionnée
-              </p>
-              <button
-                type="button"
-                onClick={handleRemoveImage}
-                className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-              >
-                Changer d'image
-              </button>
-            </div>
-          )}
+          </div>
+          
           {errors.image && (
             <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.image}</p>
           )}

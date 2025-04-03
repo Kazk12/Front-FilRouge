@@ -2,13 +2,14 @@ import { useState, useRef, ChangeEvent, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { createBook, getCategories, getStates } from "@/lib/services/bookService";
 import { useAuth } from "@/hooks/useAuth";
+import authService from "@/lib/services/authService";
 import { FormState, FormErrors } from "@/types/createMyBooks";
 import { useEffect } from "react";
 import { ACCEPTED_IMAGE_TYPES, MAX_IMAGE_SIZE, MAX_SHORT_DESCRIPTION_LENGTH, BOOK_ROUTES } from "@/lib/constants/constants";
 
 export default function useBookForm() {
   const router = useRouter();
-  const { token } = useAuth();
+  const { isAuthenticated } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   // États pour les options de sélection
@@ -38,29 +39,64 @@ export default function useBookForm() {
 
   // Charger les catégories et états au chargement du composant
   useEffect(() => {
-    async function loadOptions() {
-      try {
-        setIsLoadingOptions(true);
-        const [categoriesData, statesData] = await Promise.all([
-          getCategories(),
-          getStates()
-        ]);
+  let isMounted = true;
+  
+  async function loadOptions() {
+    try {
+      setIsLoadingOptions(true);
+      const [categoriesData, statesData] = await Promise.all([
+        getCategories(),
+        getStates()
+      ]);
+      
+      if (isMounted) {
+        // Vérification et traitement des données
+        if (Array.isArray(categoriesData) && categoriesData.length > 0) {
+          // S'assurer que chaque catégorie a bien un id et un name
+          const formattedCategories = categoriesData.map(cat => ({
+            id: cat.id?.toString() || "",
+            name: cat.name || ""
+          }));
+          setCategoryOptions(formattedCategories);
+        } else {
+          setCategoryOptions([]);
+          setErrors(prev => ({
+            ...prev,
+            submit: "Aucune catégorie n'a été trouvée. Veuillez contacter l'administrateur."
+          }));
+        }
         
-        setCategoryOptions(categoriesData);
-        setStateOptions(statesData);
-      } catch (error) {
+        if (Array.isArray(statesData) && statesData.length > 0) {
+          setStateOptions(statesData);
+        } else {
+          setStateOptions([]);
+          setErrors(prev => ({
+            ...prev,
+            submit: "Aucun état n'a été trouvé. Veuillez contacter l'administrateur."
+          }));
+        }
+      }
+    } catch (error: unknown) {
+      if (isMounted) {
         console.error("Erreur lors du chargement des options:", error);
         setErrors(prev => ({ 
           ...prev, 
           submit: "Impossible de charger les données nécessaires au formulaire. Veuillez réessayer." 
         }));
-      } finally {
+      }
+    } finally {
+      if (isMounted) {
         setIsLoadingOptions(false);
       }
     }
-    
-    loadOptions();
-  }, []);
+  }
+  
+  loadOptions();
+  
+  return () => {
+    isMounted = false;
+  };
+}, []);
 
   // Gestion du changement des champs texte
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -130,6 +166,10 @@ export default function useBookForm() {
       // Créer une URL pour la prévisualisation
       setImagePreview(URL.createObjectURL(file));
       setFormData({ ...formData, image: file });
+
+     
+
+      console.log("Image sélectionnée:", file);
       
       // Effacer l'erreur d'image
       if (errors.image) {
@@ -181,64 +221,83 @@ export default function useBookForm() {
     return Object.keys(newErrors).length === 0;
   };
 
-  // Soumission du formulaire
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+  // Dans la fonction handleSubmit
+
+const handleSubmit = async (e: FormEvent) => {
+  e.preventDefault();
+  
+  if (!validateForm()) {
+    // Faire défiler jusqu'à la première erreur
+    const firstError = document.querySelector("[data-error='true']");
+    if (firstError) {
+      firstError.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+    return;
+  }
+  
+  setIsSubmitting(true);
+  setErrors({});
+  
+  try {
+    // Création d'un objet FormData pour envoyer des fichiers
+    const submitData = new FormData();
     
-    if (!validateForm()) {
-      // Faire défiler jusqu'à la première erreur
-      const firstError = document.querySelector("[data-error='true']");
-      if (firstError) {
-        firstError.scrollIntoView({ behavior: "smooth", block: "center" });
-      }
-      return;
+    // Ajout des données textuelles
+    submitData.append("title", formData.title);
+    submitData.append("author", formData.author);
+    submitData.append("shortDescription", formData.shortDescription);
+    submitData.append("description", formData.description);
+    submitData.append("price", formData.price);
+    
+    formData.categories.forEach(category => {
+      submitData.append("categories[]", `/api/categories/${category}`);
+    });
+    
+    submitData.append("state", `/api/states/${formData.state}`);
+    
+    // Ajout de l'image
+    if (formData.image) {
+      submitData.append("image", formData.image);
     }
     
-    setIsSubmitting(true);
-    setErrors({});
+    // Récupérer le token directement du service d'authentification
+    const token = authService.getToken();
     
-    try {
-      // Création d'un objet FormData pour envoyer des fichiers
-      const submitData = new FormData();
-      
-      // Ajout des données textuelles
-      submitData.append("title", formData.title);
-      submitData.append("author", formData.author);
-      formData.categories.forEach(category => {
-        submitData.append("categories[]", `/api/categories/${category}`);
+    if (!token) {
+      throw new Error("Vous devez être connecté pour créer une annonce. Veuillez vous reconnecter.");
+    }
+    
+    // Appel API pour créer le livre avec le token récupéré
+    await createBook(submitData, token);
+    
+    setSubmitSuccess(true);
+    
+    // Redirection après succès
+    setTimeout(() => {
+      router.push(BOOK_ROUTES.MY_ANNOUNCES);
+    }, 2000);
+    
+  } catch (error: any) {
+    console.error("Erreur lors de la soumission:", error);
+    
+    // Rediriger vers la page de connexion si erreur d'authentification
+    if (error.message?.includes("connecté") || error.code === 401) {
+      setErrors({
+        submit: "Votre session a expiré. Veuillez vous reconnecter."
       });
-      
-      submitData.append("state", `/api/states/${formData.state}`);
-      submitData.append("shortDescription", formData.shortDescription);
-      submitData.append("description", formData.description);
-      submitData.append("price", formData.price);
-      
-      // Ajout de l'image
-      if (formData.image) {
-        submitData.append("image", formData.image);
-      }
-      
-      // Appel API pour créer le livre
-      await createBook(submitData, token);
-      
-      setSubmitSuccess(true);
-      
-      // Redirection après succès (après un délai pour montrer le message de succès)
       setTimeout(() => {
-        router.push(BOOK_ROUTES.MY_ANNOUNCES);
-      }, 2000);
-      
-    } catch (error: any) {
-      console.error("Erreur lors de la soumission:", error);
-      
-      // Afficher un message d'erreur générique ou spécifique si disponible
+        router.push('/connexion?redirect=/my-announces/create');
+      }, 1500);
+    } else {
+      // Autre erreur
       setErrors({ 
         submit: error.message || "Une erreur est survenue lors de la création de l'annonce. Veuillez réessayer." 
       });
-    } finally {
-      setIsSubmitting(false);
     }
-  };
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   return {
     formData,

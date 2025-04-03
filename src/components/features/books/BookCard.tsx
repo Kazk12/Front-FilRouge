@@ -14,7 +14,20 @@ export default function BookCard({ book }: BookCardProps) {
   const { addToCart, isItemInCart } = useCart();
   const isInCart = isItemInCart(book.id);
 
-  console.log(book.state.name)
+  const getImageUrl = (imagePath: string | null | undefined): string => {
+    if (!imagePath) return "/images/book-placeholder.png";
+    
+    const apiUrl = process.env.NEXT_PUBLIC_API_IMAGE || '';
+    
+    // Gérer correctement la concaténation pour éviter les doubles slashes
+    if (imagePath.startsWith('http')) {
+      return imagePath;
+    } else if (imagePath.startsWith('/')) {
+      return `${apiUrl}${imagePath}`;
+    } else {
+      return `${apiUrl}/${imagePath}`;
+    }
+  };
 
   const handleAddToCart = () => {
     addToCart({
@@ -26,11 +39,13 @@ export default function BookCard({ book }: BookCardProps) {
     });
   };
 
+
+
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transition-transform hover:scale-105 flex flex-col">
       <Link href={`/livres/${book.id}`} className="block relative h-48 overflow-hidden">
         <Image
-          src={book.image || "/images/book-placeholder.png"}
+          src={getImageUrl(book.image)}
           alt={book.title}
           fill
           className="object-cover"
